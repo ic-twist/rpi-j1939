@@ -50,7 +50,7 @@ def ca_send_broadcast_pgn(size=100):
         continue
 
     print(f"sending {size} bytes")
-    # create data with 8 bytes
+    # create custom length data
     data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * size
 
     # sending normal broadcast message
@@ -65,8 +65,8 @@ def ca_send_direct_pgn(dest, size=100):
         time.sleep(1)
         continue
 
+    # create custom length data
     print(f"sending {size} bytes")
-    # create data with 8 bytes
     data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * size
 
     # sending normal peer-to-peer message
@@ -81,10 +81,8 @@ def ca_send_message(pgn, size=100):
         continue
 
     print(f"sending {size} bytes message")
-    # create data with 8 bytes
     data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * size
 
-    # sending normal peer-to-peer message
     ca.send_message(6, pgn, data)
     print(f"sent {size} bytes message to pgn {pgn}")
     return True
@@ -158,14 +156,17 @@ def main():
     ecu.add_ca(controller_application=ca)
     ca.subscribe(ca_receive)
 
-    # periodic messages
+    # setup periodic messages
     # callback every 0.5s
     # ca.add_timer(0.500, ca_timer_callback1)
     # callback every 5s
     # ca.add_timer(5, ca_timer_callback2)
+
     # by starting the CA it starts the address claiming procedure on the bus
     ca.start()
     print("waiting for addr ...")
+    
+    # Send one-time messages
     ca_send_message(0x05)
     # time.sleep(1)
     # ca_send_direct_pgn(0x1, 101)
