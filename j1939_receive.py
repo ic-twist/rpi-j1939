@@ -6,6 +6,23 @@ import j1939
 logging.getLogger('j1939').setLevel(logging.DEBUG)
 logging.getLogger('can').setLevel(logging.DEBUG)
 
+MY_ADDR = 1
+# compose the name descriptor for the new ca
+name = j1939.Name(
+    arbitrary_address_capable=0, 
+    industry_group=j1939.Name.IndustryGroup.Industrial,
+    vehicle_system_instance=1,
+    vehicle_system=1,
+    function=1,
+    function_instance=1,
+    ecu_instance=1,
+    manufacturer_code=666,
+    identity_number=1234567
+    )
+
+# create the ControllerApplications
+ca = j1939.ControllerApplication(name, MY_ADDR)
+
 def on_message(priority, pgn, sa, timestamp, data):
     """Receive incoming messages from the bus
 
@@ -20,7 +37,7 @@ def on_message(priority, pgn, sa, timestamp, data):
     :param bytearray data:
         Data of the PDU
     """
-    print("PGN {} length {}".format(pgn, len(data)))
+    print(f"PGN {pgn} length {len(data)} source {hex(sa)} time {timestamp} my_addr {hex(MY_ADDR)}")
 
 def main():
     print("Initializing")
@@ -31,19 +48,24 @@ def main():
     # Connect to the CAN bus
     # Arguments are passed to python-can's can.interface.Bus() constructor
     # (see https://python-can.readthedocs.io/en/stable/bus.html).
-    # ecu.connect(bustype='socketcan', channel='can0')
+    ecu.connect(bustype='socketcan', channel='can0')
     # ecu.connect(bustype='kvaser', channel=0, bitrate=250000)
-    ecu.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=250000)
+#     ecu.connect(bustype='pcan', channel='PCAN_USBBUS1', bitrate=250000)
     # ecu.connect(bustype='ixxat', channel=0, bitrate=250000)
     # ecu.connect(bustype='vector', app_name='CANalyzer', channel=0, bitrate=250000)
     # ecu.connect(bustype='nican', channel='CAN0', bitrate=250000)
 
-    # subscribe to all (global) messages on the bus
-    ecu.subscribe(on_message)
+    # add CA to the ECU
+    ecu.add_ca(controller_application=ca)
+    ca.subscribe(on_message)
+    ca.start()
 
-    time.sleep(120)
+    print("Initialized")
+
+    time.sleep(300)
 
     print("Deinitializing")
+    ca.stop()
     ecu.disconnect()
 
 if __name__ == '__main__':
