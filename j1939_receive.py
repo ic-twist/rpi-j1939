@@ -2,6 +2,7 @@ import logging
 import time
 import can
 import j1939
+from hexdump import hexdump
 
 logging.getLogger('j1939').setLevel(logging.DEBUG)
 logging.getLogger('can').setLevel(logging.DEBUG)
@@ -38,6 +39,7 @@ def on_message(priority, pgn, sa, timestamp, data):
         Data of the PDU
     """
     print(f"PGN {pgn} length {len(data)} source {hex(sa)} time {timestamp} my_addr {hex(MY_ADDR)}")
+    print(hexdump(data))
 
 def main():
     print("Initializing")

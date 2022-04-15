@@ -3,6 +3,7 @@ import time
 import can
 import j1939
 import os
+from hexdump import hexdump
 
 logging.getLogger('j1939').setLevel(logging.DEBUG)
 logging.getLogger('can').setLevel(logging.DEBUG)
@@ -41,6 +42,7 @@ def ca_receive(priority, pgn, source, timestamp, data):
         Data of the PDU
     """
     print(f"PGN {pgn} length {len(data)} source {source} time {timestamp} my_addr {hex(MY_ADDR)}")
+    print(hexdump(data))
 
 def ca_send_broadcast_pgn(size=100):
     # wait until we have our device_address
