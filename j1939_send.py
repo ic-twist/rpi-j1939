@@ -26,7 +26,6 @@ name = j1939.Name(
 # create the ControllerApplications
 ca = j1939.ControllerApplication(name, MY_ADDR)
 
-
 def ca_receive(priority, pgn, source, timestamp, data):
     """Feed incoming message to this CA.
     (OVERLOADED function)
@@ -51,7 +50,8 @@ def ca_send_broadcast_pgn(size=100):
 
     print(f"sending {size} bytes")
     # create custom length data
-    data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * size
+    # data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * size
+    data = [0x01] * size
 
     # sending normal broadcast message
     ca.send_pgn(0, 0xFD, 0xED, 6, data)
@@ -67,24 +67,12 @@ def ca_send_direct_pgn(dest, size=100):
 
     # create custom length data
     print(f"sending {size} bytes")
-    data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * size
+    # data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * size
+    data = [0x01] * size
 
     # sending normal peer-to-peer message
     ca.send_pgn(0, 0xE0, dest, 6, data)
     print(f"sent {size} bytes to {hex(dest)}")
-    return True
-    
-def ca_send_message(pgn, size=100):
-    # wait until we have our device_address
-    while ca.state != j1939.ControllerApplication.State.NORMAL:
-        time.sleep(1)
-        continue
-
-    print(f"sending {size} bytes message")
-    data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * size
-
-    ca.send_message(6, pgn, data)
-    print(f"sent {size} bytes message to pgn {pgn}")
     return True
 
 my_size = 100
@@ -105,33 +93,6 @@ def ca_timer_callback1(cookie):
     global my_size
     ca_send_direct_pgn(0x1, my_size)
     my_size += 1
-    # returning true keeps the timer event active
-    return True
-
-
-def ca_timer_callback2(cookie):
-    """Callback for sending messages
-
-    This callback is registered at the ECU timer event mechanism to be
-    executed every 5s.
-
-    :param cookie:
-        A cookie registered at 'add_timer'. May be None.
-    """
-    # wait until we have our device_address
-    if ca.state != j1939.ControllerApplication.State.NORMAL:
-        # returning true keeps the timer event active
-        return True
-
-    # create data with 100 bytes
-    data = [j1939.ControllerApplication.FieldValue.NOT_AVAILABLE_8] * 1785 
-
-    # sending multipacket message with TP-BAM
-    ca.send_pgn(0, 0xFE, 0xF6, 6, data)
-
-    # sending multipacket message with TP-CMDT, destination address is 0x05
-    ca.send_pgn(0, 0xD0, 0x05, 6, data)
-
     # returning true keeps the timer event active
     return True
 
@@ -159,25 +120,15 @@ def main():
     # setup periodic messages
     # callback every 0.5s
     # ca.add_timer(0.500, ca_timer_callback1)
-    # callback every 5s
-    # ca.add_timer(5, ca_timer_callback2)
 
     # by starting the CA it starts the address claiming procedure on the bus
     ca.start()
     print("waiting for addr ...")
     
     # Send one-time messages
-    ca_send_message(0x05)
-    # time.sleep(1)
-    # ca_send_direct_pgn(0x1, 101)
-    # time.sleep(1)
-    # ca_send_direct_pgn(0x1, 102)
-    # time.sleep(1)
-    # ca_send_broadcast_pgn(103)
+    ca_send_direct_pgn(0x1, 100)
+    ca_send_broadcast_pgn(100)
     # time.sleep(2)
-    # ca_send_direct_pgn(0x01, MAX_PACKET_SIZE)
-    # time.sleep(2)
-    # ca_send_broadcast_pgn(MAX_PACKET_SIZE)
 
     time.sleep(120)
 
