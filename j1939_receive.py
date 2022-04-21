@@ -7,7 +7,7 @@ from hexdump import hexdump
 logging.getLogger('j1939').setLevel(logging.DEBUG)
 logging.getLogger('can').setLevel(logging.DEBUG)
 
-MY_ADDR = 1
+MY_ADDR = 3
 # compose the name descriptor for the new ca
 name = j1939.Name(
     arbitrary_address_capable=0, 
@@ -39,7 +39,7 @@ def on_message(priority, pgn, sa, timestamp, data):
         Data of the PDU
     """
     print(f"PGN {pgn} length {len(data)} source {hex(sa)} time {timestamp} my_addr {hex(MY_ADDR)}")
-    print(hexdump(data))
+    # print(hexdump(data))
 
 def main():
     print("Initializing")
